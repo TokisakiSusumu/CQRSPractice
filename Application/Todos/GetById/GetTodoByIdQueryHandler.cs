@@ -10,7 +10,7 @@ namespace Application.Todos.GetById;
 
 public sealed class GetTodoByIdQueryHandler(IUserContext userContext, ApplicationDbContext context) : IQueryHandler<GetTodoByIdQuery, TodoResponse>
 {
-    public async Task<Result<TodoResponse>> Handle(GetTodoByIdQuery query, CancellationToken cancellationToken)
+    public async Task<Result<TodoResponse>> HandleAsync(GetTodoByIdQuery query, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

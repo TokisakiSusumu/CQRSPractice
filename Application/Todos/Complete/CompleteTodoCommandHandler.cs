@@ -10,7 +10,7 @@ namespace Application.Todos.Complete;
 
 public sealed class CompleteTodoCommandHandler(IUserContext userContext, ApplicationDbContext context) : ICommandHandler<CompleteTodoCommand>
 {
-    public async Task<Result> Handle(CompleteTodoCommand command, CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(CompleteTodoCommand command, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

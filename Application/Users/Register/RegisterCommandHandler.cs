@@ -7,7 +7,7 @@ using SharedKernel;
 namespace Application.Users.Register;
 internal sealed class RegisterCommandHandler(UserManager<User> userManager, ApplicationDbContext context) : ICommandHandler<RegisterCommand, RegisterResponse>
 {
-    public async Task<Result<RegisterResponse>> Handle(RegisterCommand command, CancellationToken cancellationToken)
+    public async Task<Result<RegisterResponse>> HandleAsync(RegisterCommand command, CancellationToken cancellationToken)
     {
         // Check if email exists
         var existingUser = await userManager.FindByEmailAsync(command.Email);

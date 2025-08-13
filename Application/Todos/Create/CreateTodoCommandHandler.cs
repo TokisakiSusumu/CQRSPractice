@@ -9,7 +9,7 @@ namespace Application.Todos.Create;
 
 public sealed class CreateTodoCommandHandler(IUserContext userContext, ApplicationDbContext context) : ICommandHandler<CreateTodoCommand, CreateTodoResponse>
 {
-    public async Task<Result<CreateTodoResponse>> Handle(CreateTodoCommand command, CancellationToken cancellationToken)
+    public async Task<Result<CreateTodoResponse>> HandleAsync(CreateTodoCommand command, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

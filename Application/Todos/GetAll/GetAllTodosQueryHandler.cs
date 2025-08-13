@@ -10,7 +10,7 @@ namespace Application.Todos.GetAll;
 
 public sealed class GetAllTodosQueryHandler(IUserContext userContext, ApplicationDbContext context) : IQueryHandler<GetAllTodosQuery, List<TodoResponse>>
 {
-    public async Task<Result<List<TodoResponse>>> Handle(GetAllTodosQuery query, CancellationToken cancellationToken)
+    public async Task<Result<List<TodoResponse>>> HandleAsync(GetAllTodosQuery query, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

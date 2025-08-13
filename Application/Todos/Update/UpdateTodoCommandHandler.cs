@@ -11,7 +11,7 @@ namespace Application.Todos.Update;
 
 public sealed class UpdateTodoCommandHandler(IUserContext userContext, ApplicationDbContext context) : ICommandHandler<UpdateTodoCommand>
 {
-    public async Task<Result> Handle(UpdateTodoCommand command, CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(UpdateTodoCommand command, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

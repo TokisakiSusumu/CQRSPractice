@@ -3,7 +3,7 @@
 namespace Application.Abstractions.Messaging;
 public interface ISender
 {
-    Task<Result<TResponse>> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default);
-    Task<Result> Send(ICommand command, CancellationToken cancellationToken = default);
-    Task<Result<TResponse>> Send<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default);
+    Task<Result<TResponse>> SendAsync<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default);
+    Task<Result> SendAsync(ICommand command, CancellationToken cancellationToken = default);
+    Task<Result<TResponse>> SendAsync<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default);
 }

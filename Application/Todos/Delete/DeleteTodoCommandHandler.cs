@@ -11,7 +11,7 @@ namespace Application.Todos.Delete;
 
 public sealed class DeleteTodoCommandHandler(IUserContext userContext, ApplicationDbContext context) : ICommandHandler<DeleteTodoCommand>
 {
-    public async Task<Result> Handle(DeleteTodoCommand command, CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(DeleteTodoCommand command, CancellationToken cancellationToken)
     {
         if (!userContext.IsAuthenticated)
         {

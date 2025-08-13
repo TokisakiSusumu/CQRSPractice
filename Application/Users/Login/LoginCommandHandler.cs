@@ -7,7 +7,7 @@ namespace Application.Users.Login;
 
 public sealed class LoginCommandHandler(UserManager<User> userManager, SignInManager<User> signInManager) : ICommandHandler<LoginCommand, LoginResponse>
 {
-    public async Task<Result<LoginResponse>> Handle(LoginCommand command, CancellationToken cancellationToken)
+    public async Task<Result<LoginResponse>> HandleAsync(LoginCommand command, CancellationToken cancellationToken)
     {
         // Find user by email
         var user = await userManager.FindByEmailAsync(command.Email);
