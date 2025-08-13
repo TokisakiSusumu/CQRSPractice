@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Api.Feature.Todos.GetById;
-[Route("yardify/todos")]
+[Route("yardify/todos/{id}")]
 [Authorize]
 public class GetTodoByIdController(ISender Sender) : OperationController
 {

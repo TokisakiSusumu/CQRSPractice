@@ -1,0 +1,94 @@
+﻿@page "/Account/Register"
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp.Components.Account
+@inject ApiAuthService ApiAuth
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Register</PageTitle>
+
+<h1>Register</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <StatusMessage Message="@errorMessage" />
+        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+            <DataAnnotationsValidator />
+            <h2>Create a new account.</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label for="email">Email</label>
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" aria-required="true" placeholder="First Name" />
+                <label for="firstName">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" aria-required="true" placeholder="Last Name" />
+                <label for="lastName">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label for="password">Password</label>
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label for="confirm-password">Confirm Password</label>
+                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private string? errorMessage;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    public async Task RegisterUser()
+    {
+        var (success, error) = await ApiAuth.RegisterAsync(Input.Email!, Input.Password!, Input.FirstName!, Input.LastName!);
+
+        if (success)
+        {
+            NavigationManager.NavigateTo("/Account/Login");
+        }
+        else
+        {
+            errorMessage = error ?? "Unable to register.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        [Required]
+        public string? FirstName { get; set; }
+
+        [Required]
+        public string? LastName { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        public string? Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string? ConfirmPassword { get; set; }
+    }
+}
