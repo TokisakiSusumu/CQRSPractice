@@ -1,0 +1,121 @@
+﻿@page "/todos/edit/{Id:guid}"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using SharedKernel.DTOs
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>Edit Todo</PageTitle>
+
+<h1>Edit Todo</h1>
+
+@if (loading)
+{
+    <p>Loading...</p>
+}
+else if (Input != null)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <EditForm Model="Input" OnValidSubmit="UpdateTodo" FormName="editTodo">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <InputText @bind-Value="Input.Title" class="form-control" />
+                    <ValidationMessage For="() => Input.Title" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <InputTextArea @bind-Value="Input.Description" class="form-control" rows="3" />
+                    <ValidationMessage For="() => Input.Description" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Due Date</label>
+                    <InputDate @bind-Value="Input.DueDate" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Priority</label>
+                    <InputSelect @bind-Value="Input.Priority" class="form-control">
+                        <option value="1">Low</option>
+                        <option value="2">Medium</option>
+                        <option value="3">High</option>
+                    </InputSelect>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update</button>
+                <button type="button" class="btn btn-secondary ms-2" @onclick=@(() => Navigation.NavigateTo("/todos"))>Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+else
+{
+    <p>Todo not found.</p>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private InputModel? Input { get; set; }
+    [Inject]
+    public HttpClient _httpClient { get; set; }
+
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TodoDto? todo;
+        var response = await _httpClient.GetAsync($"yardify/todos/{Id}");
+        todo = response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<TodoDto>() : null;
+        if (todo != null)
+        {
+            Input = new InputModel
+            {
+                Title = todo.Title,
+                Description = todo.Description,
+                DueDate = todo.DueDate,
+                Priority = todo.Priority
+            };
+        }
+        loading = false;
+    }
+
+    private async Task UpdateTodo()
+    {
+        var updateDto = new UpdateTodoDto
+        {
+            Id = Id,
+            Title = Input!.Title!,
+            Description = Input.Description!,
+            DueDate = Input.DueDate,
+            Priority = Input.Priority
+        };
+        var response = await _httpClient.PutAsJsonAsync($"yardify/todos/{Id}", updateDto);
+        return ;
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/todos");
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(200)]
+        public string? Title { get; set; }
+
+        [StringLength(1000)]
+        public string? Description { get; set; } = string.Empty;
+
+        public DateTime? DueDate { get; set; }
+
+        [Range(1, 3)]
+        public int Priority { get; set; } = 2;
+    }
+}

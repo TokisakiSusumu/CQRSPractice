@@ -1,0 +1,99 @@
+﻿@page "/todos/create"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using SharedKernel.DTOs
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>Create Todo</PageTitle>
+
+<h1>Create New Todo</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="Input" OnValidSubmit="CreateNewTodo" FormName="createTodo">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <InputText @bind-Value="Input.Title" class="form-control" />
+                <ValidationMessage For="() => Input.Title" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <InputTextArea @bind-Value="Input.Description" class="form-control" rows="3" />
+                <ValidationMessage For="() => Input.Description" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Due Date</label>
+                <InputDate @bind-Value="Input.DueDate" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <InputSelect @bind-Value="Input.Priority" class="form-control">
+                    <option value="1">Low</option>
+                    <option value="2">Medium</option>
+                    <option value="3">High</option>
+                </InputSelect>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick=@(() => Navigation.NavigateTo("/todos"))>Cancel</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    public HttpClient _httpClient { get; set; }
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+    public class CreateTodoResponse
+    {
+        public Guid Id { get; set; }
+    }
+    private async Task CreateNewTodo()
+    {
+        var todo = new CreateTodoDto
+        {
+            Title = Input.Title!,
+            Description = Input.Description!,
+            DueDate = Input.DueDate,
+            Priority = Input.Priority
+        };
+        async Task<(bool Success, Guid? Id)> CreateTodoAsync(CreateTodoDto todo)
+        {
+            var response = await _httpClient.PostAsJsonAsync("yardify/todos", todo);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<CreateTodoResponse>();
+                return (true, result?.Id);
+            }
+            return (false, null);
+        }
+        var (success, id) = await CreateTodoAsync(todo);
+        if (success)
+        {
+            Navigation.NavigateTo("/todos");
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(200)]
+        public string? Title { get; set; }
+
+        [StringLength(1000)]
+        public string? Description { get; set; } = string.Empty;
+
+        public DateTime? DueDate { get; set; }
+
+        [Range(1, 3)]
+        public int Priority { get; set; } = 2;
+    }
+}

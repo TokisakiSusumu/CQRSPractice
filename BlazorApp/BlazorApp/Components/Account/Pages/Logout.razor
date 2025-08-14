@@ -1,0 +1,12 @@
+﻿@page "/Account/Logout"
+@using BlazorApp.Components.Account
+@inject ApiAuthService ApiAuth
+@inject NavigationManager Navigation
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ApiAuth.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+}
