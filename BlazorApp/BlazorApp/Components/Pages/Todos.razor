@@ -1,7 +1,9 @@
 ﻿@page "/todos"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using SharedKernel.DTOs
 @inject NavigationManager Navigation
+@inject HttpClient HttpClient
 @attribute [Authorize]
 
 <PageTitle>My Todos</PageTitle>
@@ -68,8 +70,6 @@ else
 }
 
 @code {
-    [Inject]
-    public HttpClient _httpClient { get; set; }
     private List<TodoDto>? todos;
 
     protected override async Task OnInitializedAsync()
@@ -79,20 +79,20 @@ else
 
     private async Task LoadTodos()
     {
-        var response = await _httpClient.GetAsync("yardify/todos");
-        todos = response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<List<TodoDto>>() : null;
+        var response = await HttpClient.GetAsync("yardify/todos");
+        todos = response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<List<TodoDto>>() : new List<TodoDto>();
     }
 
     private async Task CompleteTodo(Guid id)
     {
-        var response = await _httpClient.PostAsync($"yardify/todos/{id}/complete", null);
+        var response = await HttpClient.PostAsync($"yardify/todos/{id}/complete", null);
         if (response.IsSuccessStatusCode)
             await LoadTodos();
     }
 
     private async Task DeleteTodo(Guid id)
     {
-        var response = await _httpClient.DeleteAsync($"yardify/todos/{id}");
+        var response = await HttpClient.DeleteAsync($"yardify/todos/{id}");
         if (response.IsSuccessStatusCode)
             await LoadTodos();
     }

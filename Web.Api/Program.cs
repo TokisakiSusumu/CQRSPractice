@@ -1,4 +1,3 @@
-
 using Application.Abstractions.Authentication;
 using Domain.Data;
 using Domain.Users;
@@ -6,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Web.Api.Authentication;
 using Application;
+
 namespace Web.Api;
 
 public class Program
@@ -14,19 +14,41 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        // Add CORS
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("BlazorApp", policy =>
+            {
+                policy.WithOrigins("https://localhost:7198", "http://localhost:5158")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+        });
 
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
         // Add DbContext
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        // Add Identity - same as Blazor template
+        // Configure cookie authentication
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = 401;
+                return Task.CompletedTask;
+            };
+        });
+
+        // Add Identity
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -45,10 +67,8 @@ public class Program
         builder.Services.AddScoped<IUserContext, UserContext>();
         builder.Services.AddMediatoR();
 
-
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -56,7 +76,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseAuthentication();  // Add this line
+        app.UseCors("BlazorApp"); // Add CORS before auth
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
 

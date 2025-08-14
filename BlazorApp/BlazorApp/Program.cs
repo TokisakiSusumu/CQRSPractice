@@ -19,24 +19,32 @@ public class Program
             .AddInteractiveWebAssemblyComponents();
 
         builder.Services.AddCascadingAuthenticationState();
-        // Remove all the Identity and database stuff, keep only these:
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
-        // Add HttpClient for API
-        builder.Services.AddScoped(sp => new HttpClient
-        {
-            BaseAddress = new Uri("https://localhost:7146/") // Your API URL
-        });
 
+        // Configure HttpClient with credentials
+        builder.Services.AddScoped(sp =>
+        {
+            var client = new HttpClient(new HttpClientHandler
+            {
+                CookieContainer = new System.Net.CookieContainer(),
+                UseCookies = true,
+                UseDefaultCredentials = false
+            })
+            {
+                BaseAddress = new Uri("https://localhost:7146/")
+            };
+            return client;
+        });
 
         builder.Services.AddScoped<ApiAuthService>();
         builder.Services.AddAuthorizationCore();
 
+        // Add dummy ApplicationUser for EmailSender
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseWebAssemblyDebugging();
@@ -44,12 +52,10 @@ public class Program
         else
         {
             app.UseExceptionHandler("/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
         app.UseHttpsRedirection();
-
         app.UseStaticFiles();
         app.UseAntiforgery();
 
@@ -57,9 +63,6 @@ public class Program
             .AddInteractiveServerRenderMode()
             .AddInteractiveWebAssemblyRenderMode()
             .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
-
-        // Add additional endpoints required by the Identity /Account Razor components.
-        //app.MapAdditionalIdentityEndpoints();
 
         app.Run();
     }
