@@ -20,9 +20,9 @@ public class Program
             options.AddPolicy("BlazorApp", policy =>
             {
                 policy.WithOrigins("https://localhost:7198", "http://localhost:5158")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
             });
         });
 

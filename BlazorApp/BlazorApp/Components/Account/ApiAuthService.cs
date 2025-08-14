@@ -1,24 +1,23 @@
-﻿namespace BlazorApp.Components.Account;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 
-public class ApiAuthService
+namespace BlazorApp.Components.Account;
+
+public class ApiAuthService(HttpClient _httpClient, AuthenticationStateProvider _authStateProvider)
 {
-    private readonly HttpClient _httpClient;
 
-    public ApiAuthService(HttpClient httpClient) => _httpClient = httpClient;
+    //public async Task<(bool Success, string? Error)> LoginAsync(string email, string password)
+    //{
+    //    var response = await _httpClient.PostAsJsonAsync("yardify/auth/login", new { email, password });
 
-    public async Task<(bool Success, string? Error)> LoginAsync(string email, string password)
-    {
-        var response = await _httpClient.PostAsJsonAsync("yardify/auth/login", new { email, password });
+    //    if (response.IsSuccessStatusCode)
+    //    {
+    //        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+    //        return (true, null);
+    //    }
 
-        if (response.IsSuccessStatusCode)
-        {
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            return (true, null);
-        }
-
-        var error = await response.Content.ReadAsStringAsync();
-        return (false, error);
-    }
+    //    var error = await response.Content.ReadAsStringAsync();
+    //    return (false, error);
+    //}
 
     public async Task<(bool Success, string? Error)> RegisterAsync(string email, string password, string firstName, string lastName)
     {
@@ -32,9 +31,24 @@ public class ApiAuthService
         return (false, error);
     }
 
+    public async Task<(bool Success, string? Error)> LoginAsync(string email, string password)
+    {
+        var response = await _httpClient.PostAsJsonAsync("yardify/auth/login", new { email, password });
+
+        if (response.IsSuccessStatusCode)
+        {
+            ((ApiAuthenticationStateProvider)_authStateProvider).NotifyUserAuthentication(email);
+            return (true, null);
+        }
+
+        var error = await response.Content.ReadAsStringAsync();
+        return (false, error);
+    }
+
     public async Task LogoutAsync()
     {
         await _httpClient.PostAsync("yardify/auth/logout", null);
+        ((ApiAuthenticationStateProvider)_authStateProvider).NotifyUserLogout();
     }
 
     public async Task<UserInfo?> GetCurrentUserAsync()

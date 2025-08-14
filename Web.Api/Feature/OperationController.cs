@@ -18,6 +18,7 @@ public abstract class OperationController : ControllerBase
         var code when code.Contains("Validation") => BadRequest(error),
         var code when code.Contains("Conflict") => Conflict(error),
         var code when code.Contains("Unauthorized") => Unauthorized(error),
+        var code when code.Contains("InvalidCredentials") => BadRequest(error),
         _ => StatusCode(500, "Server failure")
     };
 }
